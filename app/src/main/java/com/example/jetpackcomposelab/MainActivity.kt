@@ -31,24 +31,26 @@ class MainActivity : ComponentActivity() {
     @Preview
     @Composable
     fun MyScreenContent(names: List<String> = List(100) { "Hello Android #$it" }) {
-        val count = remember { mutableStateOf(0) }
+        var count by remember { mutableStateOf(0) }
         Column(modifier = Modifier.fillMaxHeight()) {
-            NameList(names, Modifier.weight(1f))
+            NameList(names, Modifier.weight(1f)){value -> count = value.filter{v -> v}.size}
             ClickCounter(
-                count = count.value,
-                updateCount = { newCount ->
-                    count.value = newCount
-                }
+                count = count
             )
         }
     }
 
     @Composable
-    fun NameList(names: List<String>, modifier: Modifier = Modifier) {
+    fun NameList(names: List<String>, modifier: Modifier = Modifier, onSelectedCount: (selected: List<Boolean>) -> Unit) {
         val markeds by remember { mutableStateOf(MutableList(names.size) { false }) }
         LazyColumn(modifier = modifier) {
             itemsIndexed(names) { index, name ->
-                Greeting(name = name, markeds[index]) {value -> markeds[index] = value}
+                Greeting(name = name, markeds[index]) {value ->
+                    run {
+                        markeds[index] = value
+                        onSelectedCount(markeds)
+                    }
+                }
                 Divider(color = Color.Black)
             }
         }
@@ -69,11 +71,8 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ClickCounter(count: Int, updateCount: (Int) -> Unit) {
-        Text("I've been clicked $count times")
-        Button(onClick = { updateCount(count+1) }) {
-            Text("Click me")
-        }
+    fun ClickCounter(count: Int) {
+        Text("You selected $count items")
     }
 
 }
